@@ -35,12 +35,12 @@ node {
 			println rc
         }
         stage('Test Code In Scratch Org'){
-            rc = command "${toolbelt} force:org:create --definitionfile config/project-scratch-def.json --setalias ciorg --wait 10 --durationdays 1"
+            rc = bat returnStatus: true, script: "\"${toolbelt}\" force:org:create --definitionfile config/project-scratch-def.json --setalias ciorg --wait 10 --durationdays 1"
                 if (rc != 0) {
                     error 'Salesforce test scratch org creation failed.'
                 }
 
-            rc = command "${toolbelt} force:source:push --targetusername ciorg"
+            rc = bat returnStatus: true, script: "\"${toolbelt}\" force:source:push --targetusername ciorg"
             if (rc != 0) {
                 error 'Salesforce push to test scratch org failed.'
             }
@@ -50,7 +50,7 @@ node {
             //     error 'Salesforce unit test run in test scratch org failed.'
             // }
 
-            rc = command "${toolbelt}/sfdx force:org:delete --targetusername ciorg --noprompt"
+            rc = bat returnStatus: true, script: "\"${toolbelt}\" force:org:delete --targetusername ciorg --noprompt"
             if (rc != 0) {
                 error 'Salesforce test scratch org deletion failed.'
             }
@@ -71,12 +71,4 @@ node {
             println(rmsg)
         }
     }
-}
-
-def command(script) {
-        if (isUnix()) {
-            return sh(returnStatus: true, script: script);
-        } else {
-            return bat(returnStatus: true, script: script); 
-        }
 }
