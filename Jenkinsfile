@@ -23,14 +23,6 @@ node {
         checkout scm
     }
 
-    def command(script) {
-        if (isUnix()) {
-            return sh(returnStatus: true, script: script);
-        } else {
-            return bat(returnStatus: true, script: script); 
-        }
-    }
-
     withCredentials([file(credentialsId: JWT_KEY_CRED_ID, variable: 'jwt_key_file')]) {
         stage('Authorize'){
             if (isUnix()) {
@@ -79,4 +71,12 @@ node {
             println(rmsg)
         }
     }
+}
+
+def command(script) {
+        if (isUnix()) {
+            return sh(returnStatus: true, script: script);
+        } else {
+            return bat(returnStatus: true, script: script); 
+        }
 }
