@@ -45,10 +45,10 @@ node {
                 error 'Salesforce push to test scratch org failed.'
             }
 
-            // rc = command "${toolbelt}/sfdx force:apex:test:run --targetusername ciorg --wait 10 --resultformat tap --codecoverage --testlevel ${TEST_LEVEL}"
-            // if (rc != 0) {
-            //     error 'Salesforce unit test run in test scratch org failed.'
-            // }
+            rc = bat returnStatus: true, script: "\"${toolbelt}\" force:apex:test:run --targetusername ciorg --classnames \"Demo_Tests\" --wait 10 --resultformat tap"
+            if (rc != 0) {
+                error 'Salesforce unit test run in test scratch org failed.'
+            }
 
             rc = bat returnStatus: true, script: "\"${toolbelt}\" force:org:delete --targetusername ciorg --noprompt"
             if (rc != 0) {
