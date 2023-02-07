@@ -23,8 +23,16 @@ node {
         checkout scm
     }
 
+    def command(script) {
+        if (isUnix()) {
+            return sh(returnStatus: true, script: script);
+        } else {
+            return bat(returnStatus: true, script: script); 
+        }
+    }
+
     withCredentials([file(credentialsId: JWT_KEY_CRED_ID, variable: 'jwt_key_file')]) {
-        stage('Deploye Code') {
+        stage('Authorize'){
             if (isUnix()) {
                 rc = sh returnStatus: true, script: "${toolbelt} force:auth:jwt:grant --clientid ${CONNECTED_APP_CONSUMER_KEY} --username ${HUB_ORG} --jwtkeyfile ${jwt_key_file} --setdefaultdevhubusername --instanceurl ${SFDC_HOST}"
             }else{
@@ -33,8 +41,31 @@ node {
             if (rc != 0) { error 'hub org authorization failed' }
 
 			println rc
+        }
+        stage('Test Code In Scratch Org'){
+            rc = command "${toolbelt} force:org:create --definitionfile config/project-scratch-def.json --setalias ciorg --wait 10 --durationdays 1"
+                if (rc != 0) {
+                    error 'Salesforce test scratch org creation failed.'
+                }
+
+            rc = command "${toolbelt} force:source:push --targetusername ciorg"
+            if (rc != 0) {
+                error 'Salesforce push to test scratch org failed.'
+            }
+
+            // rc = command "${toolbelt}/sfdx force:apex:test:run --targetusername ciorg --wait 10 --resultformat tap --codecoverage --testlevel ${TEST_LEVEL}"
+            // if (rc != 0) {
+            //     error 'Salesforce unit test run in test scratch org failed.'
+            // }
+
+            rc = command "${toolbelt}/sfdx force:org:delete --targetusername ciorg --noprompt"
+            if (rc != 0) {
+                error 'Salesforce test scratch org deletion failed.'
+            }
+
+        }
+        stage('Deploy Code To Developer') {
 			
-			// need to pull out assigned username
 			if (isUnix()) {
 				rmsg = sh returnStdout: true, script: "${toolbelt} force:mdapi:deploy -d manifest/. -u ${HUB_ORG}"
 			}else{
