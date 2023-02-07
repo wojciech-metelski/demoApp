@@ -38,7 +38,7 @@ node {
 			if (isUnix()) {
 				rmsg = sh returnStdout: true, script: "${toolbelt} force:mdapi:deploy -d manifest/. -u ${HUB_ORG}"
 			}else{
-				bat returnStdout: true, script: "sfdx force:source:convert --rootdir force-app --outputdir tmp_convert"
+				bat returnStdout: true, script: "\"${toolbelt}\" force:source:convert --rootdir force-app --outputdir tmp_convert"
 				bat returnStdout: true, script: "jar -cfM newBuild.zip tmp_convert"
 			   	rmsg = bat returnStdout: true, script: "\"${toolbelt}\" force:mdapi:deploy --zipfile newBuild.zip -u ${HUB_ORG}"
 			}
